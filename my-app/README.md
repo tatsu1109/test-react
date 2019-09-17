@@ -1,3 +1,5 @@
+### [Reactチュートリアル](https://ja.reactjs.org/tutorial/tutorial.html)をredux-starter-kitを使って実装してみる
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
