@@ -1,4 +1,7 @@
 ### [Reactチュートリアル](https://ja.reactjs.org/tutorial/tutorial.html)をredux-starter-kitを使って実装してみる
+1. [Reactチュートリアル](https://ja.reactjs.org/tutorial/tutorial.html)を実装
+2. redux-starter-kit[(参考ページ)](https://qiita.com/Ouvill/items/a76e9cbce569d01f2931)を使って状態管理をreduxに移行
+3. [Reactチュートリアル](https://ja.reactjs.org/tutorial/tutorial.html)を下部の課題を実装
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
