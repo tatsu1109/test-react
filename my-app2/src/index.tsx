@@ -22,9 +22,6 @@ const Game2 = () => {
     const [timerId, timerIdRef, setTimerId] = useRefState(-1);
 
     const currentBoard = board.slice();
-    currentBoard[head.y][head.x] = "head";
-    // currentBoard[body.y][body.x] = "body";
-    currentBoard[fruit.y][fruit.x] = "fruit";
     //   setBoard([...board, ...currentBoard]);
     //   setHead({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
     //   console.log(count);
@@ -35,10 +32,28 @@ const Game2 = () => {
     //   };
 
     useEffect(() => {
+        const [KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN] = [37, 38, 39, 40];
+        const listener = (event: any) => {
+            switch (event.keyCode) {
+                case KEY_LEFT:
+                    directionRef.current = "left";
+                    break;
+                case KEY_UP:
+                    directionRef.current = "top";
+                    break;
+                case KEY_RIGHT:
+                    directionRef.current = "right";
+                    break;
+                case KEY_DOWN:
+                    directionRef.current = "bottom";
+                    break;
+            }
+        }
+        document.addEventListener('keydown', listener)
         setTimerId(
             setInterval(() => {
                 console.log(`${headRef.current.x}:${boardNumber}`);
-                if (headRef.current.x >= boardNumber - 1) {
+                if (headRef.current.x >= boardNumber - 1 || headRef.current.y >= boardNumber - 1) {
                     clearInterval(timerIdRef.current);
                 } else {
                     setHead({
@@ -48,31 +63,36 @@ const Game2 = () => {
                     console.log(currentBoard);
                 }
             }, 1000)
+
         );
+        return () => {
+            document.removeEventListener('keydown', listener)
+        }
     }, []);
 
     return (
         <Box component="span" m={1}>
-            <Button onClick={() => clearInterval(timerId)}>{`Start${head.x}`}</Button>
-            {board.map((row: string[], rowIndex: number) => {
-                return (
-                    <Box key={`Y${rowIndex}`} component="div" m={1}>
-                        {row.map((colValue: string, colIndex: number) => {
+            <Button onClick={() => directionRef.current = "bottom"}>{`Start${head.x}`}</Button>
+            {
+                board.map((row: string[], rowIndex: number) => {
+                    return (
+                        <Box key={`Y${rowIndex}`} component="div" m={1}>
+                            {row.map((colValue: string, colIndex: number) => {
                                 let btnClass = classNames({
                                     'cell': true,
                                     'head': rowIndex === head.y && colIndex === head.x ? true : false,
                                     'body': rowIndex === body[0].y && colIndex === body[0].x ? true : false,
                                     'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
                                 });
-                            return (
+                                return (
                                     <Box key={`X${colIndex}`} className={btnClass} component="span" m={1}>
-                                    {`${rowIndex}${colIndex}`}
-                                </Box>
-                            );
-                        })}
-                    </Box>
-                );
-            })}
+                                        {`${rowIndex}${colIndex}`}
+                                    </Box>
+                                );
+                            })}
+                        </Box>
+                    );
+                })}
         </Box>
     );
 };
