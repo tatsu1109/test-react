@@ -16,20 +16,10 @@ const Game2 = () => {
     );
 
     const [direction, directionRef, setDirection] = useRefState("right");
-    const [head, headRef, setHead] = useRefState({ x: 0, y: 0 });
-    const [body, setBody] = useState([{ x: 0, y: 1 }]);
-    const [fruit, fruitRef, setFruit] = useRefState({ x: 3, y: 3 });
+    const [head, headRef, setHead] = useRefState({ x: 2, y: 0 });
+    const [body, setBody] = useState([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
+    const [fruit, fruitRef, setFruit] = useRefState({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
     const [timerId, timerIdRef, setTimerId] = useRefState(-1);
-
-    const currentBoard = board.slice();
-    //   setBoard([...board, ...currentBoard]);
-    //   setHead({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
-    //   console.log(count);
-    //   let timerId: any;
-    //   const stop = () => {
-    //     console.log(timerId);
-    //     clearInterval(timerId);
-    //   };
 
     useEffect(() => {
         const [KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN] = [37, 38, 39, 40];
@@ -52,15 +42,15 @@ const Game2 = () => {
         document.addEventListener('keydown', listener)
         setTimerId(
             setInterval(() => {
-                console.log(`${headRef.current.x}:${boardNumber}`);
                 if (headRef.current.x >= boardNumber - 1 || headRef.current.y >= boardNumber - 1) {
                     clearInterval(timerIdRef.current);
                 } else {
+                    body.shift();
+                    body.push(headRef.current);
                     setHead({
                         x: headRef.current.x + (directionRef.current === "right" ? 1 : directionRef.current === "left" ? -1 : 0),
                         y: headRef.current.y + (directionRef.current === "bottom" ? 1 : directionRef.current === "top" ? -1 : 0)
                     });
-                    console.log(currentBoard);
                 }
             }, 1000)
 
@@ -78,14 +68,14 @@ const Game2 = () => {
                     return (
                         <Box key={`Y${rowIndex}`} component="div" m={1}>
                             {row.map((colValue: string, colIndex: number) => {
-                                let btnClass = classNames({
+                                let cellClass = classNames({
                                     'cell': true,
                                     'head': rowIndex === head.y && colIndex === head.x ? true : false,
-                                    'body': rowIndex === body[0].y && colIndex === body[0].x ? true : false,
+                                    'body': body.some(index => index.x === colIndex && index.y === rowIndex),
                                     'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
                                 });
                                 return (
-                                    <Box key={`X${colIndex}`} className={btnClass} component="span" m={1}>
+                                    <Box key={`X${colIndex}`} className={cellClass} component="span" m={1}>
                                         {`${rowIndex}${colIndex}`}
                                     </Box>
                                 );
