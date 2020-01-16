@@ -8,53 +8,62 @@ import classNames from "classnames";
 // import Game from "./components/Game";
 
 const Game2 = () => {
-    let boardNumber: number = 10;
-    const [board, boardRef, setBoard] = useRefState(
+    let boardNumber: number = 5;
+    const [board, setBoard] = useState(
         _.times(boardNumber, xIndex => {
             return Array(boardNumber).fill("");
         })
     );
 
-    const [direction, directionRef, setDirection] = useRefState("right");
-    const [head, headRef, setHead] = useRefState({ x: 2, y: 0 });
-    const [body, setBody] = useState([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
-    const [fruit, fruitRef, setFruit] = useRefState({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
+    const [direction, refDirection, setDirection] = useRefState('right');
+    const [head, refHead, setHead] = useRefState({ x: 2, y: 0 });
+    const [body, refBody, setBody] = useRefState([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
+    const [fruit, refFruit, setFruit] = useRefState({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
     const [timerId, timerIdRef, setTimerId] = useRefState(-1);
 
     useEffect(() => {
+        setTimerId(
+            setInterval(() => {
+                if (refHead.current.x >= boardNumber ||
+                    refHead.current.y >= boardNumber ||
+                    refBody.current.some((index: any) => index.x === refHead.current.x && index.y === refHead.current.y)) {
+                    clearInterval(timerIdRef.current);
+                }
+
+                if (_.isEqual(refHead.current, refFruit.current)) {
+                    setFruit({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
+                    setBody([...refBody.current, refHead.current]);
+                } else {
+                    refBody.current.shift();
+                    setBody([...refBody.current, refHead.current]);
+                }
+                
+                setHead({
+                    x: refHead.current.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
+                    y: refHead.current.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
+                });
+            }, 1000)
+        );
+
         const [KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN] = [37, 38, 39, 40];
         const listener = (event: any) => {
             switch (event.keyCode) {
                 case KEY_LEFT:
-                    directionRef.current = "left";
+                    setDirection("left");
                     break;
                 case KEY_UP:
-                    directionRef.current = "top";
+                    setDirection("top");
                     break;
                 case KEY_RIGHT:
-                    directionRef.current = "right";
+                    setDirection("right");
                     break;
                 case KEY_DOWN:
-                    directionRef.current = "bottom";
+                    setDirection("bottom");
                     break;
             }
         }
         document.addEventListener('keydown', listener)
-        setTimerId(
-            setInterval(() => {
-                if (headRef.current.x >= boardNumber - 1 || headRef.current.y >= boardNumber - 1) {
-                    clearInterval(timerIdRef.current);
-                } else {
-                    body.shift();
-                    body.push(headRef.current);
-                    setHead({
-                        x: headRef.current.x + (directionRef.current === "right" ? 1 : directionRef.current === "left" ? -1 : 0),
-                        y: headRef.current.y + (directionRef.current === "bottom" ? 1 : directionRef.current === "top" ? -1 : 0)
-                    });
-                }
-            }, 1000)
 
-        );
         return () => {
             document.removeEventListener('keydown', listener)
         }
@@ -62,7 +71,7 @@ const Game2 = () => {
 
     return (
         <Box component="span" m={1}>
-            <Button onClick={() => directionRef.current = "bottom"}>{`Start${head.x}`}</Button>
+            <Button>{`Start${head.x}`}</Button>
             {
                 board.map((row: string[], rowIndex: number) => {
                     return (
@@ -71,7 +80,7 @@ const Game2 = () => {
                                 let cellClass = classNames({
                                     'cell': true,
                                     'head': rowIndex === head.y && colIndex === head.x ? true : false,
-                                    'body': body.some(index => index.x === colIndex && index.y === rowIndex),
+                                    'body': body.some((index: any) => index.x === colIndex && index.y === rowIndex),
                                     'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
                                 });
                                 return (
@@ -87,6 +96,9 @@ const Game2 = () => {
     );
 };
 
+// useEffect内では第二引数に[]を指定しており、最初の一度しか呼ばれないため更新後のstateを利用するため、useRefを使用する必要がある
+// https://qiita.com/hatakoya/items/6bd529df9b38a0a6f8ed
+// 同一stateを更新するのみであれば引数に関数を渡すことで対応できる
 const useRefState = (initialValue: any) => {
     const [state, setState] = useState(initialValue);
     const stateRef = useRef(state);
