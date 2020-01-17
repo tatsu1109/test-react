@@ -28,20 +28,19 @@ const Game2 = () => {
                     refHead.current.y >= boardNumber ||
                     refBody.current.some((index: any) => index.x === refHead.current.x && index.y === refHead.current.y)) {
                     clearInterval(timerIdRef.current);
-                }
-
-                if (_.isEqual(refHead.current, refFruit.current)) {
-                    setFruit({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
-                    setBody([...refBody.current, refHead.current]);
                 } else {
-                    refBody.current.shift();
-                    setBody([...refBody.current, refHead.current]);
+                    if (_.isEqual(refHead.current, refFruit.current)) {
+                        setFruit({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
+                        setBody([...refBody.current, refHead.current]);
+                    } else {
+                        refBody.current.shift();
+                        setBody([...refBody.current, refHead.current]);
+                    }
+                    setHead({
+                        x: refHead.current.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
+                        y: refHead.current.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
+                    });
                 }
-                
-                setHead({
-                    x: refHead.current.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
-                    y: refHead.current.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
-                });
             }, 1000)
         );
 
@@ -49,16 +48,24 @@ const Game2 = () => {
         const listener = (event: any) => {
             switch (event.keyCode) {
                 case KEY_LEFT:
-                    setDirection("left");
+                    if (refDirection.current != "right") {
+                        setDirection("left");
+                    }
                     break;
                 case KEY_UP:
-                    setDirection("top");
+                    if (refDirection.current != "bottom") {
+                        setDirection("top");
+                    }
                     break;
                 case KEY_RIGHT:
-                    setDirection("right");
+                    if (refDirection.current != "left") {
+                        setDirection("right");
+                    }
                     break;
                 case KEY_DOWN:
-                    setDirection("bottom");
+                    if (refDirection.current != "top") {
+                        setDirection("bottom");
+                    }
                     break;
             }
         }
