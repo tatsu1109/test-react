@@ -9,11 +9,9 @@ import classNames from "classnames";
 
 const Game2 = () => {
     let boardNumber: number = 5;
-    const [board, setBoard] = useState(
-        _.times(boardNumber, xIndex => {
-            return Array(boardNumber).fill("");
-        })
-    );
+    const board = _.times(boardNumber, xIndex => {
+        return Array(boardNumber).fill("");
+    })
 
     const [direction, refDirection, setDirection] = useRefState('right');
     const [head, refHead, setHead] = useRefState({ x: 2, y: 0 });
@@ -21,20 +19,29 @@ const Game2 = () => {
     const [fruit, refFruit, setFruit] = useRefState({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
     const [timerId, timerIdRef, setTimerId] = useRefState(-1);
 
-    useEffect(() => {
+    const start = () => {
         setTimerId(
             setInterval(() => {
-                if (refHead.current.x >= boardNumber ||
-                    refHead.current.y >= boardNumber ||
+                if (refHead.current.x >= boardNumber || refHead.current.x < 0 ||
+                    refHead.current.y >= boardNumber || refHead.current.y < 0 ||
                     refBody.current.some((index: any) => index.x === refHead.current.x && index.y === refHead.current.y)) {
                     clearInterval(timerIdRef.current);
+                    setDirection(direction);
+                    setHead(head);
+                    setBody(body);
+                    setFruit(fruit);
+
+                    if (window.confirm('Restart?')) {
+                        start();
+                    }
                 } else {
                     if (_.isEqual(refHead.current, refFruit.current)) {
                         setFruit({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
                         setBody([...refBody.current, refHead.current]);
                     } else {
-                        refBody.current.shift();
-                        setBody([...refBody.current, refHead.current]);
+                        let currentBody = _.cloneDeep(refBody.current);
+                        currentBody.shift();
+                        setBody([...currentBody, refHead.current]);
                     }
                     setHead({
                         x: refHead.current.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
@@ -43,27 +50,32 @@ const Game2 = () => {
                 }
             }, 1000)
         );
+    }
 
-        const [KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN] = [37, 38, 39, 40];
+    useEffect(() => {
+        start()
+    }, []);
+
+    useEffect(() => {
         const listener = (event: any) => {
             switch (event.keyCode) {
-                case KEY_LEFT:
-                    if (refDirection.current != "right") {
+                case 37:
+                    if (refDirection.current !== "right") {
                         setDirection("left");
                     }
                     break;
-                case KEY_UP:
-                    if (refDirection.current != "bottom") {
+                case 38:
+                    if (refDirection.current !== "bottom") {
                         setDirection("top");
                     }
                     break;
-                case KEY_RIGHT:
-                    if (refDirection.current != "left") {
+                case 39:
+                    if (refDirection.current !== "left") {
                         setDirection("right");
                     }
                     break;
-                case KEY_DOWN:
-                    if (refDirection.current != "top") {
+                case 40:
+                    if (refDirection.current !== "top") {
                         setDirection("bottom");
                     }
                     break;
@@ -78,7 +90,7 @@ const Game2 = () => {
 
     return (
         <Box component="span" m={1}>
-            <Button>{`Start${head.x}`}</Button>
+            <Button onClick={start}>{`Reset`}</Button>
             {
                 board.map((row: string[], rowIndex: number) => {
                     return (
@@ -114,5 +126,7 @@ const useRefState = (initialValue: any) => {
     }, [state]);
     return [state, stateRef, setState];
 };
+
+
 
 ReactDOM.render(<Game2 />, document.getElementById("root"));
