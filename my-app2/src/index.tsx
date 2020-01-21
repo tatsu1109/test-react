@@ -9,9 +9,6 @@ import classNames from "classnames";
 
 const Game2 = () => {
     let boardNumber: number = 5;
-    const board = _.times(boardNumber, xIndex => {
-        return Array(boardNumber).fill("");
-    })
 
     const [direction, refDirection, setDirection] = useRefState('right');
     const [head, refHead, setHead] = useRefState({ x: 2, y: 0 });
@@ -86,31 +83,32 @@ const Game2 = () => {
         return () => {
             document.removeEventListener('keydown', listener)
         }
-    }, []);
+    }, [direction]);
 
     return (
         <Box component="span" m={1}>
             <Button onClick={start}>{`Reset`}</Button>
             {
-                board.map((row: string[], rowIndex: number) => {
-                    return (
-                        <Box key={`Y${rowIndex}`} component="div" m={1}>
-                            {row.map((colValue: string, colIndex: number) => {
-                                let cellClass = classNames({
-                                    'cell': true,
-                                    'head': rowIndex === head.y && colIndex === head.x ? true : false,
-                                    'body': body.some((index: any) => index.x === colIndex && index.y === rowIndex),
-                                    'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
-                                });
-                                return (
-                                    <Box key={`X${colIndex}`} className={cellClass} component="span" m={1}>
-                                        {`${rowIndex}${colIndex}`}
-                                    </Box>
-                                );
-                            })}
-                        </Box>
-                    );
-                })}
+                _.times(boardNumber, xIndex => Array(boardNumber).fill(""))
+                    .map((row: string[], rowIndex: number) => {
+                        return (
+                            <Box key={`Y${rowIndex}`} component="div" m={1}>
+                                {row.map((colValue: string, colIndex: number) => {
+                                    let cellClass = classNames({
+                                        'cell': true,
+                                        'head': rowIndex === head.y && colIndex === head.x ? true : false,
+                                        'body': body.some((index: any) => index.x === colIndex && index.y === rowIndex),
+                                        'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
+                                    });
+                                    return (
+                                        <Box key={`X${colIndex}`} className={cellClass} component="span" m={1}>
+                                            {`${rowIndex}${colIndex}`}
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        );
+                    })}
         </Box>
     );
 };
