@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useReducer } from "react";
 import ReactDOM from "react-dom";
 import Button from "@material-ui/core/Button";
 import "./index.css";
@@ -7,50 +7,88 @@ import Box from "@material-ui/core/Box";
 import classNames from "classnames";
 // import Game from "./components/Game";
 
+interface square {
+    x: number,
+    y: number
+}
+
+
+// type snakeState = {
+//     head: square,
+//     body: square[]
+// };
+
+// type snakeAction = {
+//     type: "move" | "glow";
+// };
+
+
 const Game2 = () => {
     let boardNumber: number = 5;
 
     const [direction, refDirection, setDirection] = useRefState('right');
-    const [head, refHead, setHead] = useRefState({ x: 2, y: 0 });
-    const [body, refBody, setBody] = useRefState([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
-    const [fruit, refFruit, setFruit] = useRefState({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
+    // const [head, refHead, setHead] = useRefState({ x: 2, y: 0 });
+    // const [body, refBody, setBody] = useRefState([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
+    const [fruit, refFruit, setFruit] = useRefState(randomCoordinate(boardNumber));
     const [timerId, timerIdRef, setTimerId] = useRefState(-1);
+
+    const snakeReducer = (state: any, action: any) => {
+        if (action.type === "move") {
+            let currentBody = _.cloneDeep(state.body);
+            currentBody.shift();
+            return {
+                ...state,
+                head: {
+                    x: state.head.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
+                    y: state.head.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
+                },
+                body: [...currentBody, state.head]
+            }
+        } else if (action.type === "glow") {
+            return {
+                ...state,
+                head: {
+                    x: state.head.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
+                    y: state.head.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
+                },
+                body: [...state.body, state.head]
+            }
+        }
+    }
+
+    const snakeInitialState = {
+        head: { x: 2, y: 0 },
+        body: [{ x: 0, y: 0 }, { x: 1, y: 0 }]
+    };
+
+    const [currentSnakeState, snakeDispatch] = useReducer(snakeReducer, snakeInitialState);
 
     const start = () => {
         setTimerId(
             setInterval(() => {
-                if (refHead.current.x >= boardNumber || refHead.current.x < 0 ||
-                    refHead.current.y >= boardNumber || refHead.current.y < 0 ||
-                    refBody.current.some((index: any) => index.x === refHead.current.x && index.y === refHead.current.y)) {
+                //TODO 衝突判定をreducerの中に移す？
+                if (currentSnakeState.head.x >= boardNumber || currentSnakeState.head.x < 0 ||
+                    currentSnakeState.head.y >= boardNumber || currentSnakeState.head.y < 0 ||
+                    currentSnakeState.body.some((index: any) => index.x === currentSnakeState.head.x && index.y === currentSnakeState.head.y)) {
                     clearInterval(timerIdRef.current);
-                    setDirection(direction);
-                    setHead(head);
-                    setBody(body);
-                    setFruit(fruit);
-
                     if (window.confirm('Restart?')) {
                         start();
                     }
                 } else {
-                    if (_.isEqual(refHead.current, refFruit.current)) {
-                        setFruit({ x: Math.floor(Math.random() * boardNumber), y: Math.floor(Math.random() * boardNumber) });
-                        setBody([...refBody.current, refHead.current]);
-                    } else {
-                        let currentBody = _.cloneDeep(refBody.current);
-                        currentBody.shift();
-                        setBody([...currentBody, refHead.current]);
-                    }
-                    setHead({
-                        x: refHead.current.x + (refDirection.current === "right" ? 1 : refDirection.current === "left" ? -1 : 0),
-                        y: refHead.current.y + (refDirection.current === "bottom" ? 1 : refDirection.current === "top" ? -1 : 0)
-                    });
+
+                }
+                if (_.isEqual(currentSnakeState.head, refFruit.current)) {
+                    setFruit(randomCoordinate(boardNumber));
+                    snakeDispatch({ type: "glow" });
+                } else {
+                    snakeDispatch({ type: "move" });
                 }
             }, 1000)
         );
     }
 
     useEffect(() => {
-        start()
+        start();
     }, []);
 
     useEffect(() => {
@@ -96,8 +134,8 @@ const Game2 = () => {
                                 {row.map((colValue: string, colIndex: number) => {
                                     let cellClass = classNames({
                                         'cell': true,
-                                        'head': rowIndex === head.y && colIndex === head.x ? true : false,
-                                        'body': body.some((index: any) => index.x === colIndex && index.y === rowIndex),
+                                        'head': rowIndex === currentSnakeState.head.y && colIndex === currentSnakeState.head.x ? true : false,
+                                        'body': currentSnakeState.body.some((index: any) => index.x === colIndex && index.y === rowIndex),
                                         'fruit': rowIndex === fruit.y && colIndex === fruit.x ? true : false
                                     });
                                     return (
@@ -108,7 +146,8 @@ const Game2 = () => {
                                 })}
                             </Box>
                         );
-                    })}
+                    })
+            }
         </Box>
     );
 };
@@ -125,6 +164,8 @@ const useRefState = (initialValue: any) => {
     return [state, stateRef, setState];
 };
 
-
+const randomCoordinate = (squareNumber: number) => {
+    return { x: Math.floor(Math.random() * squareNumber), y: Math.floor(Math.random() * squareNumber) };
+}
 
 ReactDOM.render(<Game2 />, document.getElementById("root"));
